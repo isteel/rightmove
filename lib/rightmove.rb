@@ -3,7 +3,7 @@ require 'blm'
 
 module Rightmove
 	class Archive		
-		attr_accessor :document, :zip_file, :branch_id, :timestamp
+		attr_accessor :document, :zip_file, :branch_id, :timestamp, :blm
 		
 		def initialize(file = nil)
 			open(file) unless file.nil?
@@ -31,9 +31,10 @@ module Rightmove
 		end
 		
 		def parse_file_name
-			branch_id, timestamp = @zip_file.to_s.split("_").pop(2)
+      blm = self.zip_file.entries.select {|v| v.to_s =~ /\.blm/i }.first
+			branch_id, timestamp = blm.to_s.split("_").pop(2)
 			@branch_id = branch_id.to_i
-			@timestamp = time_from_string(timestamp)
+			@timestamp = time_from_string(timestamp[0..7])
 		end
 
     def time_from_string(string)
@@ -51,7 +52,7 @@ module BLM
 			unless @attributes[method].nil?
 				value = @attributes[method] 
 				if arguments[:instantiate_with]
-					return value unless value =~ /\.jpg/i
+					return value unless value =~ /\.jpg|\.pdf/i
 					if arguments[:instantiate_with].instance_of?(Zip::ZipFile)
 						zip = arguments[:instantiate_with]
 					else
@@ -62,7 +63,7 @@ module BLM
 						file = StringIO.new( zip.read(matching_files.first) )
 						file.class.class_eval { attr_accessor :original_filename, :content_type }
 						file.original_filename = matching_files.first.to_s
-						file.content_type = "image/jpg"
+						file.content_type = (value =~ /\.jpg/i ? "image/jpg" : (value =~ /\.pdf/ ? "application/pdf" : "application/octet-stream" ))
 						return file
 					end
 				else
@@ -72,7 +73,7 @@ module BLM
 		end
 		
 		def media_fields
-			self.attributes.select {|k,v| k.to_s =~ /media_(image|floor_plan)_.*/i }
+			self.attributes.select {|k,v| k.to_s =~ /media_(image|floor_plan|document)_.*/i }
 		end
 	end
 end
