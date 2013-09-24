@@ -32,9 +32,17 @@ module Rightmove
 		
 		def parse_file_name
       blm = self.zip_file.entries.select {|v| v.to_s =~ /\.blm/i }.first
-			branch_id, timestamp = blm.to_s.split("_").pop(2)
-			@branch_id = branch_id.to_i
-			@timestamp = time_from_string(timestamp[0..7])
+      puts "BLM: #{blm}"
+      if /.+_.+/.match(blm.to_s)
+  			branch_id, timestamp = blm.to_s.split("_").pop(2)
+  			@branch_id = branch_id.to_i
+			  @timestamp = time_from_string(timestamp[0..7])
+		  else
+		    @branch_id = File.basename(@zip_file.to_s).gsub('.zip', '')
+		    @timestamp = self.zip_file.to_s.sub(@branch_id, '')
+	    end
+	    puts "Branch: #{@branch_id}"
+	    puts "Timestamp: #{@timestamp}"
 		end
 
     def time_from_string(string)
