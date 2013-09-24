@@ -1,7 +1,8 @@
 source "http://rubygems.org"
 
 gem "blm"
-gem "rubyzip"
+# gem "rubyzip"
+gem 'rubyzip', '< 1.0.0'
 
 group :development do
   gem "rspec", "~> 2.3.0"
